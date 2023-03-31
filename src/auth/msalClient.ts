@@ -1,9 +1,12 @@
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
-export const tenantName = "sabanab2c";
-export const clientId = "91a65dc5-f32f-4678-bd2e-212ff379932e";
-export const signInSignUpPolicy = "B2C_1_SignUpSignIn1";
-export const baseUrl = "http://localhost:3000";
+export const tenantName = process.env.TENANT_1NAME;
+export const clientId = process.env.CLIENT_ID;
+export const signInSignUpPolicy = process.env.SIGN_IN_SIGN_UP_POLICY;
+export const baseUrl = process.env.BASE_URL;
+
+if (!tenantName || !clientId || !signInSignUpPolicy || !baseUrl)
+  throw new Error("environment variables not set");
 
 const authorityBase = `https://${tenantName}.b2clogin.com/tfp/${tenantName}.onmicrosoft.com`;
 const authorityMap = {
