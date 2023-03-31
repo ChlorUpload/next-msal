@@ -1,6 +1,6 @@
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
-export const tenantName = process.env.TENANT_1NAME;
+export const tenantName = process.env.TENANT_NAME;
 export const clientId = process.env.CLIENT_ID;
 export const signInSignUpPolicy = process.env.SIGN_IN_SIGN_UP_POLICY;
 export const baseUrl = process.env.BASE_URL;
