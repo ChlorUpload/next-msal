@@ -8,14 +8,22 @@ import {
 export const tenantName = process.env.TENANT_NAME!;
 export const clientId = process.env.CLIENT_ID!;
 export const signInSignUpPolicy = process.env.SIGN_IN_SIGN_UP_POLICY!;
+export const resetPasswordPolicy = process.env.RESET_PASSWORD_POLICY!;
 export const baseUrl = process.env.BASE_URL!;
 
-if (!tenantName || !clientId || !signInSignUpPolicy || !baseUrl)
+if (
+  !tenantName ||
+  !clientId ||
+  !signInSignUpPolicy ||
+  !resetPasswordPolicy ||
+  !baseUrl
+)
   throw new Error("environment variables not set");
 
 export const authorityBase = `https://${tenantName}.b2clogin.com/tfp/${tenantName}.onmicrosoft.com`;
 export const authorityMap = {
   signInSignUp: `${authorityBase}/${signInSignUpPolicy}`,
+  resetPassword: `${authorityBase}/${resetPasswordPolicy}`,
 };
 
 const cachePath = "./cache.json";

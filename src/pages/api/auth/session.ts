@@ -2,8 +2,6 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { withIronSessionApiRoute } from "iron-session/next";
 import { getMsalClient, scope } from "@/auth/msalSession/msalClient";
 import { sessionOptions } from "@/auth/msalSession/ironSession";
-import { parseRoles } from "@/auth/models/role";
-import { Session } from "@/auth/models/auth";
 import { makeSession } from "@/auth/msalSession/makeSession";
 
 export async function session(req: NextApiRequest, res: NextApiResponse) {
