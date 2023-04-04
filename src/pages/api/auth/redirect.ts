@@ -54,14 +54,14 @@ export async function redirect(req: NextApiRequest, res: NextApiResponse) {
 
     res.redirect(state.redirectTo);
   } catch (error) {
-    await onError(req, res);
+    // no explicit error, but cannot get token -> require sign in again
+    // e.g. reset password finished
+    await redirectPkceAuthCodeUrl(req, res, req.query.state as string);
     return;
   }
 }
 
 async function onError(req: NextApiRequest, res: NextApiResponse) {
-  if (!req.query.error) throw new Error("no error given!");
-
   /**
    * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
    * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
@@ -74,10 +74,12 @@ async function onError(req: NextApiRequest, res: NextApiResponse) {
       req.query.state as string,
       authorityMap.resetPassword
     );
+    return;
   }
 
   if (JSON.stringify(req.query.error_description).includes("AADB2C90091")) {
     await redirectPkceAuthCodeUrl(req, res, req.query.state as string);
+    return;
   }
 
   throw new Error("unexpected error: " + (req.query as any).error_description);
