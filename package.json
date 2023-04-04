@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@azure/msal-node": "^1.16.0",
+    "@azure/msal-node-extensions": "^1.0.0-alpha.31",
     "@next/font": "13.2.4",
     "@types/node": "18.15.11",
     "@types/react": "18.0.31",

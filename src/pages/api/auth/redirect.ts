@@ -1,40 +1,58 @@
-import { sessionOptions } from "@/auth/ironSession";
-import { pca, redirectUri, scope } from "@/auth/msalClient";
-import { withIronSessionApiRoute } from "iron-session/next";
+import { cryptoProvider } from "@/auth/msalSession/cryptoProvider";
+import { sessionOptions } from "@/auth/msalSession/ironSession";
+import {
+  getMsalClient,
+  redirectUri,
+  scope,
+} from "@/auth/msalSession/msalClient";
+import { AuthorizationCodeRequest } from "@azure/msal-node";
 import { NextApiRequest, NextApiResponse } from "next";
+import { withIronSessionApiRoute } from "iron-session/next";
+import { makeSession } from "@/auth/msalSession/makeSession";
 
-// no top-level navigation: no cookie sent!
-async function redirect(req: NextApiRequest, res: NextApiResponse) {
-  console.log("SESSION!!!", req.session, req.body, req.cookies);
+export async function redirect(req: NextApiRequest, res: NextApiResponse) {
+  if (!req.query.state) throw new Error("State not found");
 
-  res.send({
-    session: req.session,
-    body: req.body,
-    cookies: req.cookies,
-  });
+  const pca = await getMsalClient();
+  const state = JSON.parse(
+    cryptoProvider.base64Decode(req.query.state as any)
+  ) as any;
+  if (state.stage !== "login") {
+    throw new Error("not a login stage");
+  }
 
-  // const authCodeRequest = {
-  //   redirectUri,
-  //   scopes: [scope],
-  //   code: req.body.code,
-  //   codeVerifier: req.session.pkceCodes.verifier,
-  // };
+  const code = req.query.code || req.body.code;
+  const verifier = req.session.verifier;
 
-  // try {
-  //   const tokenResponse = await pca.acquireTokenByCode(authCodeRequest);
-  //   const state = tokenResponse.state;
-  //   console.log(state);
-  //   req.session.accessToken = tokenResponse.accessToken;
-  //   req.session.idToken = tokenResponse.idToken;
-  //   req.session.account = tokenResponse.account;
-  //   req.session.isAuthenticated = true;
-  //   await req.session.save();
+  const authCodeRequest: AuthorizationCodeRequest = {
+    redirectUri,
+    scopes: [scope],
+    code,
+    codeVerifier: verifier,
+  };
 
-  //   res.redirect("/");
-  // } catch (error) {
-  //   console.error(error);
-  //   res.end();
-  // }
+  try {
+    const tokenResponse = await pca.acquireTokenByCode(authCodeRequest);
+    const accessToken = tokenResponse.accessToken;
+    const idTokenClaims = tokenResponse!.idTokenClaims as any;
+    const session = makeSession(accessToken, idTokenClaims);
+    await req.session.destroy();
+    req.session = {
+      ...req.session,
+      ...session,
+      account: {
+        homeAccountId: tokenResponse.account!.homeAccountId,
+        localAccountId: tokenResponse.account!.localAccountId,
+      },
+      verifier: "",
+    };
+    await req.session.save();
+
+    res.redirect(state.redirectTo);
+  } catch (error) {
+    console.error(error);
+    res.end();
+  }
 }
 
 export default withIronSessionApiRoute(redirect, sessionOptions);

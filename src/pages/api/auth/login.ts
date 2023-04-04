@@ -1,39 +1,38 @@
-import { cryptoProvider } from "@/auth/cryptoProvider";
+import { cryptoProvider } from "@/auth/msalSession/cryptoProvider";
 import { NextApiRequest, NextApiResponse } from "next";
+import {
+  getMsalClient,
+  redirectUri,
+  scope,
+} from "@/auth/msalSession/msalClient";
+import { AuthorizationUrlRequest } from "@azure/msal-node";
+import { sessionOptions } from "@/auth/msalSession/ironSession";
 import { withIronSessionApiRoute } from "iron-session/next";
-import { sessionOptions } from "@/auth/ironSession";
-import { pca, redirectUri, scope } from "@/auth/msalClient";
 
-async function signIn(req: NextApiRequest, res: NextApiResponse) {
-  // create a GUID for crsf
-  req.session.csrfToken = cryptoProvider.createNewGuid();
-  await req.session.save();
+export async function login(req: NextApiRequest, res: NextApiResponse) {
+  const pca = await getMsalClient();
 
+  const { redirectTo } = req.query;
   const state = cryptoProvider.base64Encode(
     JSON.stringify({
-      csrfToken: req.session.csrfToken,
-      redirectTo: "/",
+      redirectTo: redirectTo ?? "/",
+      stage: "login",
     })
   );
 
   // Generate PKCE Codes before starting the authorization flow
   const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
 
-  // Set generated PKCE codes and method as session vars
-  const pkceCodes = {
-    challengeMethod: "S256",
-    verifier: verifier,
-    challenge: challenge,
-  };
-
-  const authCodeUrlRequest = {
+  const authCodeUrlRequest: AuthorizationUrlRequest = {
     state,
     redirectUri,
-    responseMode: "form_post" as any, // recommended for confidential clients
-    codeChallenge: pkceCodes.challenge,
-    codeChallengeMethod: pkceCodes.challengeMethod,
+    codeChallenge: challenge,
+    codeChallengeMethod: "S256",
     scopes: [scope],
   };
+
+  req.session.verifier = verifier;
+  await req.session.save();
 
   // Get url to sign user in and consent to scopes needed for application
   try {
@@ -44,4 +43,4 @@ async function signIn(req: NextApiRequest, res: NextApiResponse) {
   }
 }
 
-export default withIronSessionApiRoute(signIn, sessionOptions);
+export default withIronSessionApiRoute(login, sessionOptions);
