@@ -18,7 +18,14 @@ export async function session(req: NextApiRequest, res: NextApiResponse) {
   const account = req.session.account.homeAccountId
     ? await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
     : await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
-  if (!account) throw new Error("no account");
+  if (!account) {
+    res.send({
+      error: "TokenCacheExpired",
+    });
+    return;
+  }
+
+  console.log("ACCOUNT", account);
 
   const silentRequest = {
     account: account,

@@ -1,9 +1,6 @@
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
-import {
-  DataProtectionScope,
-  PersistenceCachePlugin,
-  PersistenceCreator,
-} from "@azure/msal-node-extensions";
+import { getDiskCachePlugin } from "./cachePlugins/diskCachePlugin";
+import { getRedisCachePlugin } from "./cachePlugins/redisCachePlugin";
 
 export const tenantName = process.env.TENANT_NAME!;
 export const clientId = process.env.CLIENT_ID!;
@@ -26,15 +23,6 @@ export const authorityMap = {
   resetPassword: `${authorityBase}/${resetPasswordPolicy}`,
 };
 
-const cachePath = "./cache.json";
-const persistenceConfiguration = {
-  cachePath,
-  dataProtectionScope: DataProtectionScope.CurrentUser,
-  serviceName: "serviceName",
-  accountName: "accountName",
-  usePlaintextFileOnLinux: false,
-};
-
 export const scope = `https://${tenantName}.onmicrosoft.com/${clientId}/api`;
 export const redirectUri = `${baseUrl}/api/auth/redirect`;
 
@@ -43,9 +31,12 @@ let _pca: PublicClientApplication | null = null;
 export async function getMsalClient() {
   if (_pca) return _pca;
 
-  const persistence = await PersistenceCreator.createPersistence(
-    persistenceConfiguration
-  );
+  let cachePlugin;
+  // if (process.env.NODE_ENV === "production") {
+  cachePlugin = await getRedisCachePlugin();
+  // } else {
+  // cachePlugin = await getDiskCachePlugin();
+  // }
 
   const clientConfig: Configuration = {
     auth: {
@@ -55,7 +46,7 @@ export async function getMsalClient() {
       clientSecret: "",
     },
     cache: {
-      cachePlugin: new PersistenceCachePlugin(persistence),
+      cachePlugin,
     },
   };
 
