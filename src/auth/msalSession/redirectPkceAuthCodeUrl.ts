@@ -24,7 +24,5 @@ export async function redirectPkceAuthCodeUrl(
   await req.session.save();
 
   const authCodeUrlResponse = await pca.getAuthCodeUrl(authCodeUrlRequest);
-  const tokenCache = pca.getTokenCache();
-  console.log("CACHE!!!", tokenCache);
   res.redirect(authCodeUrlResponse);
 }

@@ -25,8 +25,6 @@ export async function session(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  console.log("ACCOUNT", account);
-
   const silentRequest = {
     account: account,
     scopes: [scope],
