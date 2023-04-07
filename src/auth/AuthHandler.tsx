@@ -26,8 +26,7 @@ AuthHandlerProps) {
 
   useEffect(() => {
     if (state === "sessionExpired") {
-      // signOut();
-      console.log("sign out");
+      authClient.signOut();
     }
   }, [state]);
 
