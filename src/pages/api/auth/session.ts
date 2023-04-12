@@ -12,12 +12,13 @@ export async function session(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const pca = await getMsalClient();
+  const pca = await getMsalClient(req);
+  // manager.setPartitionKey(req.session.partitionkey);
   const tokenCache = pca.getTokenCache();
+  const account = await tokenCache.getAccountByHomeId(
+    req.session.account.homeAccountId
+  );
 
-  const account = req.session.account.homeAccountId
-    ? await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
-    : await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
   if (!account) {
     res.send({
       error: "TokenCacheExpired",

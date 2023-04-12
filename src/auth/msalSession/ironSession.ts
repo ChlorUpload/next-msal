@@ -15,7 +15,6 @@ export const sessionOptions: IronSessionOptions = {
 
 type PartialAccountInfo = {
   homeAccountId: AccountInfo["homeAccountId"];
-  localAccountId: AccountInfo["localAccountId"];
 };
 
 // This is where we specify the typings of req.session.*

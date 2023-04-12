@@ -9,7 +9,7 @@ export async function redirectPkceAuthCodeUrl(
   state: string,
   authority?: string
 ) {
-  const pca = await getMsalClient();
+  const pca = await getMsalClient(req);
   const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
   const authCodeUrlRequest: AuthorizationUrlRequest = {
     state,

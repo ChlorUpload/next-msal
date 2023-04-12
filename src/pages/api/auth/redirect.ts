@@ -20,7 +20,7 @@ export async function redirect(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const pca = await getMsalClient();
+  const pca = await getMsalClient(req);
   const state = JSON.parse(
     cryptoProvider.base64Decode(req.query.state as any)
   ) as any;
@@ -46,7 +46,6 @@ export async function redirect(req: NextApiRequest, res: NextApiResponse) {
       ...session,
       account: {
         homeAccountId: tokenResponse.account!.homeAccountId,
-        localAccountId: tokenResponse.account!.localAccountId,
       },
       verifier: "",
     };
@@ -54,10 +53,11 @@ export async function redirect(req: NextApiRequest, res: NextApiResponse) {
 
     res.redirect(state.redirectTo);
   } catch (error) {
+    console.log(error);
+
     // no explicit error, but cannot get token -> require sign in again
     // e.g. reset password finished
     await redirectPkceAuthCodeUrl(req, res, req.query.state as string);
-    return;
   }
 }
 

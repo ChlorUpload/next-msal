@@ -1,6 +1,7 @@
 import { Configuration, PublicClientApplication } from "@azure/msal-node";
-import { getDiskCachePlugin } from "./cachePlugins/diskCachePlugin";
 import { getRedisCachePlugin } from "./cachePlugins/redisCachePlugin";
+import { NextApiRequest } from "next";
+import { getDiskCachePlugin } from "./cachePlugins/diskCachePlugin";
 
 export const tenantName = process.env.TENANT_NAME!;
 export const clientId = process.env.CLIENT_ID!;
@@ -26,17 +27,16 @@ export const authorityMap = {
 export const scope = `https://${tenantName}.onmicrosoft.com/${clientId}/api`;
 export const redirectUri = `${baseUrl}/api/auth/redirect`;
 
-let _pca: PublicClientApplication | null = null;
+const isUsingRedisCache = true;
+// const isUsingRedisCache = process.env.NODE_ENV === "production";
 
-export async function getMsalClient() {
-  if (_pca) return _pca;
-
+export async function getMsalClient(req: NextApiRequest) {
   let cachePlugin;
-  // if (process.env.NODE_ENV === "production") {
-  cachePlugin = await getRedisCachePlugin();
-  // } else {
-  // cachePlugin = await getDiskCachePlugin();
-  // }
+  if (isUsingRedisCache) {
+    cachePlugin = await getRedisCachePlugin(req);
+  } else {
+    cachePlugin = await getDiskCachePlugin();
+  }
 
   const clientConfig: Configuration = {
     auth: {
@@ -50,6 +50,5 @@ export async function getMsalClient() {
     },
   };
 
-  _pca = new PublicClientApplication(clientConfig);
-  return _pca;
+  return new PublicClientApplication(clientConfig);
 }
