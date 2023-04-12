@@ -5,7 +5,12 @@ import {
 import { IWatchTarget, WatchTarget } from "@/util/WatchTarget/WatchTarget";
 import { Auth } from "./models/auth";
 
-const tokenStates = ["idle", "tokenRefreshing", "sessionExpired"] as const;
+const tokenStates = [
+  "idle",
+  "tokenRefreshing",
+  "sessionExpired",
+  "error",
+] as const;
 
 type TokenRefreshState = typeof tokenStates[number];
 
@@ -64,6 +69,7 @@ export class AuthClient implements IWatchTarget<AuthManagerWatchMap> {
         session: null,
         status: "unauthenticated",
       });
+      this._set.tokenRefreshState("error");
       return false;
     }
   }

@@ -8,7 +8,10 @@ export function AuthStateIndicator() {
   const [anim, setAnim] = useState(false);
 
   const needShow = useMemo(
-    () => state === "tokenRefreshing" || state === "sessionExpired",
+    () =>
+      state === "tokenRefreshing" ||
+      state === "sessionExpired" ||
+      state === "error",
     [state]
   );
   const timer = usePersist<ReturnType<typeof setTimeout> | null>(null);
@@ -35,6 +38,7 @@ export function AuthStateIndicator() {
       <div className="fixed left-[30px] bottom-[30px] bg-[#00000088] text-[white] px-[24px] py-[20px] rounded-[4px] flex items-center gap-[14px]">
         {state === "tokenRefreshing" && "로그인 세션 자동 연장 중"}
         {state === "sessionExpired" && "세션이 만료되었습니다. 로그아웃 중"}
+        {state === "error" && "세션 오류 발생. 로그아웃 중"}
       </div>
     );
 
