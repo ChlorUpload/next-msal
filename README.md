@@ -14,3 +14,4 @@ this example aims to handle some `azure-ad-b2c`-only features but as familiar as
 - silent token acquisition
 - secure disk local cache using `msal-node-extensions`
 - redis production cache using `azure-cache for redis`
+- distributed cache
